@@ -13,6 +13,23 @@ From [MMLab@NTU](https://www.mmlab-ntu.com/index.html) affliated with S-Lab, Nan
 
 Video Data: [HDTF](https://github.com/MRzzm/HDTF)
 
+## Getting Started
+* Clone this repo: `git clone --recursive git@github.com:arthur-qiu/ReliTalk.git`
+* Create a conda environment `conda env create -f environment.yml` and activate `conda activate IMavatar` 
+* We use `libmise` to extract 3D meshes, build `libmise` by running `cd code; python setup.py install`
+* Download [FLAME model](https://flame.is.tue.mpg.de/download.php), choose **FLAME 2020** and unzip it, copy 'generic_model.pkl' into `./code/flame/FLAME2020`
+
+## Preparing Dataset
+
+Prepare the dataset following intructions in `./preprocess/README.md`.
+
+Link the dataset folder to `./data/datasets`. Link the experiment output folder to `./data/experiments`.
+
+## Training
+
 ## Inference
 
-We are organizing the code and will release it soon.
+## We are organizing the code and will release it soon. 
+
+## Acknowledgments
+This code borrows heavily from [IMavatar](https://github.com/zhengyuf/IMavatar).
