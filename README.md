@@ -9,7 +9,7 @@ From [MMLab@NTU](https://www.mmlab-ntu.com/index.html) affliated with S-Lab, Nan
 
 [**[Project Page]**](https://github.com/arthur-qiu/ReliTalk) | [**[Paper]**](https://github.com/arthur-qiu/ReliTalk) | [**[Demo Video]**](https://github.com/arthur-qiu/ReliTalk)
 
-### Generated Samples
+## Generated Samples
 
 ### Relighting
 
@@ -35,9 +35,36 @@ Prepare the dataset following intructions in `./preprocess/README.md`.
 
 Link the dataset folder to `./data/datasets`. Link the experiment output folder to `./data/experiments`.
 
-## Training
+## Relighting
 
-## Inference
+### Train for rough normal
+
+```bash
+cd code
+python scripts/exp_runner.py --conf ./confs/IMavatar_supervised_Obama.conf
+```
+
+### Generate rough normal
+```bash
+python scripts/exp_runner.py --conf ./confs/IMavatar_supervised_Obama_test.conf --is_eval --checkpoint [epoch1]
+```
+
+### Train for reflectance decomposition
+
+```bash
+mv ../data/experiments/Obama/IMavatar/Obama_train/eval/Obama_eval/epoch_[epoch1]/normal ../data/datasets/Obama/Obama/Obama_eval/
+
+mv ../data/experiments/Obama/IMavatar/Obama_train/eval/Obama_train/epoch_[epoch1]/normal ../data/datasets/Obama/Obama/Obama_train/
+
+mv ../data/experiments/Obama ../data/experiments/Obama_store
+
+python scripts/exp_runner_relight.py --conf ./confs/IMavatar_supervised_Obama_light.conf
+```
+
+### Inference for relighting
+```bash
+python scripts/exp_runner_relight.py --conf ./confs/IMavatar_supervised_Obama_test_light.conf --is_eval --checkpoint [epoch2]
+```
 
 ## We are organizing the code and will release it soon. 
 
