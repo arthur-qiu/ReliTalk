@@ -9,6 +9,16 @@ From [MMLab@NTU](https://www.mmlab-ntu.com/index.html) affliated with S-Lab, Nan
 
 [**[Project Page]**](https://github.com/arthur-qiu/ReliTalk) | [**[Paper]**](https://github.com/arthur-qiu/ReliTalk) | [**[Demo Video]**](https://github.com/arthur-qiu/ReliTalk)
 
+### Generated Samples
+
+### Relighting
+
+<img src="docs/rotate_light.gif" width="92%" height="92%"/>
+
+### Audio Driven Relighting
+
+<img src="docs/demo.gif" width="92%" height="92%"/>
+
 ## Datasets
 
 Video Data: [HDTF](https://github.com/MRzzm/HDTF)
