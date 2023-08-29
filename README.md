@@ -1,6 +1,6 @@
-# ReliTalk - Official PyTorch Implementation
+# ReliTalk - Drive any portrait with only a single training video required
 
-## Drive any portrait with only a single training video required
+## [**[Project Page]**](https://github.com/arthur-qiu/ReliTalk) | [**[Paper]**](https://github.com/arthur-qiu/ReliTalk) | [**[Demo Video]**](https://github.com/arthur-qiu/ReliTalk)
 
 This repository provides the official PyTorch implementation for the following paper:
 
@@ -8,8 +8,6 @@ This repository provides the official PyTorch implementation for the following p
 [Haonan Qiu](http://haonanqiu.com/), [Zhaoxi Chen](https://frozenburning.github.io), [Yuming Jiang](https://yumingj.github.io/), [Hang Zhou](https://hangz-nju-cuhk.github.io/), [Wayne Wu](https://wywu.github.io/), [Xiangyu Fan](https://github.com/arthur-qiu/ReliTalk), [Lei Yang](https://scholar.google.com.hk/citations?user=jZH2IPYAAAAJ&hl=en), and [Ziwei Liu](https://liuziwei7.github.io/)</br>
 
 From [MMLab@NTU](https://www.mmlab-ntu.com/index.html) affliated with S-Lab, Nanyang Technological University and SenseTime Research.
-
-[**[Project Page]**](https://github.com/arthur-qiu/ReliTalk) | [**[Paper]**](https://github.com/arthur-qiu/ReliTalk) | [**[Demo Video]**](https://github.com/arthur-qiu/ReliTalk)
 
 ## Generated Samples
 
