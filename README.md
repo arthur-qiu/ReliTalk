@@ -1,5 +1,7 @@
 # ReliTalk - Official PyTorch Implementation
 
+## Drive any portrait with only a single training video required
+
 This repository provides the official PyTorch implementation for the following paper:
 
 **ReliTalk: Relightable Talking Portrait Generation from a Single Video**</br>
@@ -66,7 +68,7 @@ python scripts/exp_runner_relight.py --conf ./confs/IMavatar_supervised_Obama_li
 python scripts/exp_runner_relight.py --conf ./confs/IMavatar_supervised_Obama_test_light.conf --is_eval --checkpoint [epoch2]
 ```
 
-## We are organizing the code and will release it soon. 
+# We are still working on organizing the code. 
 
 ## Acknowledgments
 This code borrows heavily from [IMavatar](https://github.com/zhengyuf/IMavatar).
