@@ -11,11 +11,11 @@ From [MMLab@NTU](https://www.mmlab-ntu.com/index.html) affliated with S-Lab, Nan
 
 ## Generated Samples
 
-### Relighting
+### Relighting with rotated single lighting source.
 
 <img src="docs/rotate_light.gif" width="92%" height="92%"/>
 
-### Audio Driven Relighting
+### Relightable audio-driven talking portrait generation.
 
 <img src="docs/demo.gif" width="92%" height="92%"/>
 
