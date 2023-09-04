@@ -161,12 +161,6 @@ class TestRunner():
 
             space_normal, space_shading = normal_shading_sh(light)
 
-            # if not torch.equal(pre_light, light):
-            #     pre_light = light.clone()
-            #     new_light = True
-            # else:
-            #     new_light = False
-
             albedo = self.albedo_net(ground_truth['rgb'].transpose(2, 1).view(-1, 3, 256, 256))
             normal = ground_truth['normal'].transpose(2, 1).view(-1, 3, 256, 256)
             fine_normal = (self.normal_net(torch.cat([ground_truth['rgb'].transpose(2, 1).view(-1, 3, 256, 256), normal], 1)) + 1) / 2 * face_mask * 2 - 1
@@ -174,7 +168,6 @@ class TestRunner():
 
             fine_normal_sh[:, 1, ...] = -((fine_normal[:, 2, ...] + 1) / 2)
             fine_normal_sh[:, 2, ...] = fine_normal[:, 1, ...]
-            # fine_normal = self.normal_net(normal) * face_mask + (1 - face_mask)
             img_light = torch.cuda.FloatTensor(space_shading/255)
 
             length = space_normal.shape[0]
@@ -184,7 +177,6 @@ class TestRunner():
 
             h = torch.cuda.FloatTensor(normalize(space_normal + np.array([[0, -1, 0]]).repeat(space_shading.shape[0], 0))).unsqueeze(0).unsqueeze(-1).unsqueeze(-1)
     
-            # nh = fine_normal.detach()[:, [0] , :, :] * h[:, :, 0, :, :] + fine_normal.detach()[:, [1] , :, :] * h[:, :, 1, :, :] + fine_normal.detach()[:, [2] , :, :] * h[:, :, 2, :, :]
             nh = fine_normal_sh[:, [0] , :, :] * h[:, :, 0, :, :] + fine_normal_sh[:, [1] , :, :] * h[:, :, 1, :, :] + fine_normal_sh[:, [2] , :, :] * h[:, :, 2, :, :]
             z = torch.cuda.FloatTensor(space_shading[np.newaxis, :, np.newaxis]) * nh
             sep_spec = (s + 2) / (2 * pi) * torch.pow(z, s)
@@ -207,8 +199,6 @@ class TestRunner():
                 new_light = False
 
             masked_shading = torch.clamp((masked_shading - masked_shading_min) / (masked_shading_max - masked_shading_min), 0.0, 1.0)
-            # masked_shading = torch.pow(masked_shading, 1 / adjust_coef)
-            print(adjust_coef)
             adjust_shading = torch.clamp(torch.pow(torch.pow(adjust_coef, 0.5) * masked_shading, 1 / adjust_coef) * 1.2, 0.0, 1.2)
 
             specmap = self.spec_net(torch.cat([ground_truth['rgb'].transpose(2, 1).view(-1, 3, 256, 256), fine_normal.detach()], 1))

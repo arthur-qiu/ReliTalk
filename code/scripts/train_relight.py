@@ -167,8 +167,6 @@ class TrainRunner():
         self.loss = utils.get_class(self.conf.get_string('train.loss_class'))(**self.conf.get_config('loss'))
 
         self.lr = self.conf.get_float('train.learning_rate')
-        # for name, param in self.albedo_net.named_parameters():
-        #     print(name, param)
 
         self.optimizer = torch.optim.Adam([{'params': self.albedo_net.parameters(), 'lr': self.lr}, {'params': self.spec_net.parameters(), 'lr': self.lr}, {'params': self.normal_net.parameters(), 'lr': self.lr}, {'params': self.light_var, 'lr': self.lr * 0.1}])
         self.sched_milestones = self.conf.get_list('train.sched_milestones', default=[])
@@ -326,8 +324,7 @@ class TrainRunner():
             if len(self.GT_lbs_milestones) > 0 and epoch >= self.GT_lbs_milestones[-1]:
                 self.loss.lbs_weight = 0.
 
-            if epoch % 5 == 0 or (epoch > 5 and epoch < 10):
-            # if epoch % 5 == 0 or (epoch > 30 and epoch < 40):
+            if epoch % 5 == 0 or (epoch < self.nepochs - 5):
                 light = torch.clamp(self.light_var.clone().detach(), -2.0, 2.0)
                 light[5:] = light[5:] / 10
                 self.albedo_net.light = nn.parameter.Parameter(light)
@@ -338,7 +335,6 @@ class TrainRunner():
                 self.albedo_net.light = nn.parameter.Parameter(light)
                 self.save_checkpoints(epoch, only_latest=True)
 
-            # if (epoch % self.plot_freq == 0 and epoch < 7) or (epoch % (self.plot_freq * 5) == 0) or (epoch > 15 and epoch < 20):
             if (epoch % self.plot_freq == 0):
                 self.albedo_net.eval()
                 self.spec_net.eval()
@@ -381,7 +377,6 @@ class TrainRunner():
                     albedo = self.albedo_net(ground_truth['rgb'].transpose(2, 1).view(-1, 3, 256, 256))
                     normal = ground_truth['normal'].transpose(2, 1).view(-1, 3, 256, 256)
                     fine_normal = (self.normal_net(torch.cat([ground_truth['rgb'].transpose(2, 1).view(-1, 3, 256, 256), normal], 1)) + 1) / 2 * face_mask * 2 - 1
-                    # fine_normal = self.normal_net(normal) * face_mask + (1 - face_mask)
                     img_light = torch.cuda.FloatTensor(space_shading/255)
 
                     length = space_normal.shape[0]
@@ -390,7 +385,6 @@ class TrainRunner():
                     space_normal = space_normal[sample_index, ...]
                     h = torch.cuda.FloatTensor(normalize(space_normal + np.array([[0, 0, 1]]).repeat(space_shading.shape[0], 0))).unsqueeze(0).unsqueeze(-1).unsqueeze(-1)
 
-                    # nh = fine_normal.detach()[:, [0] , :, :] * h[:, :, 0, :, :] + fine_normal.detach()[:, [1] , :, :] * h[:, :, 1, :, :] + fine_normal.detach()[:, [2] , :, :] * h[:, :, 2, :, :]
                     nh = fine_normal[:, [0] , :, :] * h[:, :, 0, :, :] + fine_normal[:, [1] , :, :] * h[:, :, 1, :, :] + fine_normal[:, [2] , :, :] * h[:, :, 2, :, :]
                     z = torch.cuda.FloatTensor(space_shading[np.newaxis, :, np.newaxis]) * nh
                     sep_spec = (s + 2) / (2 * pi) * torch.pow(z, s)
@@ -434,16 +428,11 @@ class TrainRunner():
                     sample_masked_shading_max = torch.max(sample_masked_shading_nonzero)
                     sample_masked_shading = torch.clamp((sample_masked_shading - sample_masked_shading_min) / (sample_masked_shading_max - sample_masked_shading_min), 0.0, 1.0)                
 
-                    # adjust_coef = torch.sum(sample_masked_shading).detach() * 0 + 3
-                    # adjust_coef = torch.clamp(torch.sum(sample_masked_shading) / torch.sum(masked_shading).detach(), 0.2, 1.0)
-                    # sample_masked_shading = torch.clamp(torch.pow(torch.pow(adjust_coef, 0.5) * sample_masked_shading, 1 / adjust_coef) * 1.2, 0.0, 1.2)              
-
                     sample_final_image = (torch.clamp(albedo.detach() * (sample_masked_shading + sample_masked_spec * scaled_specmap.detach()), 0.0, 1.0) * (1 - shoulder_mask) + shoulder_mask * (ground_truth["rgb"].transpose(2, 1).reshape(-1, 3, 256, 256) / 2 + 0.5) * model_input['object_mask'].view(-1, 1, 256, 256)
                     + (1 - model_input['object_mask'].view(-1, 1, 256, 256).float())) * 2 - 1
 
                     model_outputs = {
                         'rgb_values': final_image.view(3, 256*256).transpose(1, 0),
-                        # 'pre_spec_values': tmp_spec.view(1, 256*256).repeat(3, 1).transpose(1, 0),
                         'spec_values': masked_spec.view(1, 256*256).repeat(3, 1).transpose(1, 0),
                         'specmap_values': specmap.view(1, 256*256).repeat(3, 1).transpose(1, 0),
                         'normal_values': ground_truth['normal'].view(-1, 3),
@@ -480,8 +469,6 @@ class TrainRunner():
                              )
                     print("Plot time per image: {}".format(time.time() - start_time))
                     print(light)
-                    # print(self.albedo_net.constant_factor * self.albedo_net.light)
-                    # print(torch.min(masked_shading), torch.max(masked_shading))
                     del model_outputs, ground_truth
 
                 self.albedo_net.train()
@@ -520,7 +507,6 @@ class TrainRunner():
                 albedo = self.albedo_net(ground_truth['rgb'].transpose(2, 1).view(-1, 3, 256, 256))
                 normal = ground_truth['normal'].transpose(2, 1).view(-1, 3, 256, 256)
                 fine_normal = (self.normal_net(torch.cat([ground_truth['rgb'].transpose(2, 1).view(-1, 3, 256, 256), normal], 1)) + 1) / 2 * face_mask * 2 - 1
-                # fine_normal = self.normal_net(normal) * face_mask + (1 - face_mask)
 
                 length = space_normal.shape[0]
                 space_shading = space_shading.reshape(length, -1) / 255
@@ -536,8 +522,7 @@ class TrainRunner():
                 masked_spec = (spec - torch.min(spec)) / (torch.max(spec) - torch.min(spec)) * face_mask
                 masked_spec = (masked_spec - torch.min(masked_spec)) / (torch.max(masked_spec) - torch.min(masked_spec))
      
-                if epoch < 3:
-                # if epoch < 10:
+                if epoch < (self.nepochs // 3):
                     shading = add_SHlight(self.albedo_net.constant_factor, fine_normal, light.detach().view(1, -1 , 1).repeat(ground_truth['normal'].shape[0], 1, 1))
                 else:
                     shading = add_SHlight(self.albedo_net.constant_factor, fine_normal, light.view(1, -1 , 1).repeat(ground_truth['normal'].shape[0], 1, 1))
@@ -577,11 +562,6 @@ class TrainRunner():
                 sample_masked_shading_max = torch.max(sample_masked_shading_nonzero)
                 sample_masked_shading = torch.clamp((sample_masked_shading - sample_masked_shading_min) / (sample_masked_shading_max - sample_masked_shading_min), 0.0, 1.0)               
 
-                # if epoch >= 20:
-                #     adjust_coef = torch.sum(sample_masked_shading).detach() * 0 + 3
-                #     # adjust_coef = torch.clamp(torch.sum(sample_masked_shading) / torch.sum(masked_shading).detach(), 0.2, 1.0)
-                #     sample_masked_shading = torch.clamp(torch.pow(torch.pow(adjust_coef, 0.5) * sample_masked_shading, 1 / adjust_coef) * 1.2, 0.0, 1.2)              
-
                 sample_final_image = (torch.clamp(albedo.detach() * (sample_masked_shading + sample_masked_spec * scaled_specmap.detach()), 0.0, 1.0) * (1 - shoulder_mask) + shoulder_mask * (ground_truth["rgb"].transpose(2, 1).reshape(-1, 3, 256, 256) / 2 + 0.5) * model_input['object_mask'].view(-1, 1, 256, 256) 
                     + (1 - model_input['object_mask'].view(-1, 1, 256, 256).float())) * 2 - 1
 
@@ -620,10 +600,8 @@ class TrainRunner():
                     self.optimizer_cam.zero_grad()
 
                 loss.backward()
-                # print('grad:', self.albedo_net.light.grad)
 
                 self.optimizer.step()
-                # print('value:', self.albedo_net.light)
                 if self.optimize_inputs:
                     self.optimizer_cam.step()
 

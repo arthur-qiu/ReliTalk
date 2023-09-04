@@ -65,7 +65,6 @@ class Loss(nn.Module):
 
     def get_albedo_loss(self, albedo_values, network_object_mask):
         masked_albedo = albedo_values[network_object_mask]
-        # masked_albedo = (masked_albedo + 1.0) / 2
         albedo_entropy = 0
         for i in range(3):
             channel = masked_albedo[..., i]
@@ -115,32 +114,21 @@ class Loss(nn.Module):
     def forward(self, model_outputs, ground_truth, epoch=0):
         network_object_mask = model_outputs['object_mask']
         object_mask = model_outputs['object_mask']
-        # rgb_loss = self.get_rgb_loss(model_outputs['rgb_values'], ground_truth['rgb'])
         rgb_loss = self.get_rgb_loss(model_outputs['rgb_values'], ground_truth['rgb'], network_object_mask, object_mask)
-        # rgb_loss = self.get_rgb_loss(model_outputs['rgb_values'] * model_outputs['face_mask'].view(-1, 1), ground_truth['rgb'] * model_outputs['face_mask'].view(-1, 256*256,  1), network_object_mask, object_mask)
 
         albedo_loss = 0.001 * self.get_albedo_loss(model_outputs['albedo_values'] * model_outputs['skin_mask'].view(-1, 1), network_object_mask)
-        # normal_loss = 0.5 * self.get_rgb_loss(model_outputs['fine_normal_values'], model_outputs['normal_values'], network_object_mask, object_mask)  
-        # + 5 * self.get_rgb_loss((model_outputs['fine_normal_values'].view(-1, 256*256, 3) * (1 - model_outputs['skin_mask']).view(-1, 256*256, 1)).view(-1, 3), (model_outputs['normal_values'].view(-1, 256*256, 3) * (1 - model_outputs['skin_mask']).view(-1, 256*256, 1)).view(-1, 3), network_object_mask, object_mask)  
-        # normal_loss = 0.2 * self.get_l1_loss(model_outputs['fine_normal_values'], model_outputs['normal_values'], network_object_mask, object_mask)
         normal_loss = 1 * self.get_rgb_loss(model_outputs['fine_normal_values'], model_outputs['normal_values'], network_object_mask, object_mask)
         normal_tv_loss = 1 * self.tv_loss(model_outputs['fine_normal_values'].permute(1, 0).reshape(-1, 3, 256, 256) * model_outputs['skin_mask']) 
         tv_loss = 1 * self.tv_loss(model_outputs['albedo_values'].permute(1, 0).reshape(-1, 3, 256, 256) * model_outputs['skin_mask'])
         spec_tv_loss =  0.5 * self.tv_loss(model_outputs['spec_values'].reshape(-1, 1, 256, 256) * model_outputs['skin_mask'])
         specmap_tv_loss =  0.01 * self.tv_loss(model_outputs['specmap_values'].reshape(-1, 1, 256, 256) * model_outputs['skin_mask'])
-        #         * network_object_mask.view(-1, 1, 256, 256))
         
         if epoch < 3:
             sample_id_loss = 0 * self.get_id_loss(model_outputs['sample_rgb_values'].reshape(-1, 3).transpose(1,0).reshape(-1, 3, 256, 256), ground_truth['rgb'].reshape(-1, 3).transpose(1,0).reshape(-1, 3, 256, 256))
         else:
             sample_id_loss = 3 * self.get_id_loss(model_outputs['sample_rgb_values'].reshape(-1, 3).transpose(1,0).reshape(-1, 3, 256, 256), ground_truth['rgb'].reshape(-1, 3).transpose(1,0).reshape(-1, 3, 256, 256))
 
-
-        # loss = rgb_loss + albedo_loss + normal_loss + sample_id_loss + tv_loss + normal_tv_loss
-        # loss = rgb_loss + albedo_loss + normal_loss + sample_id_loss
         loss = rgb_loss + albedo_loss + normal_loss + sample_id_loss + tv_loss + normal_tv_loss + spec_tv_loss + specmap_tv_loss
-        # loss = rgb_loss + normal_loss + 0 * albedo_loss + sample_id_loss + tv_loss + normal_tv_loss + spec_tv_loss + specmap_tv_loss
-        # loss = rgb_loss + albedo_loss + normal_loss + sample_id_loss + (tv_loss + normal_tv_loss + spec_tv_loss + specmap_tv_loss) * 0
 
         out = {
             'loss': loss,
