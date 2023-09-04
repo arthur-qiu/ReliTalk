@@ -85,6 +85,18 @@ def plot_images(model_outputs, depth_image, ground_truth, path, epoch, img_index
         rgb_gt = (rgb_gt.cuda() + 1.) / 2.
     else:
         rgb_gt = None
+   		
+    if 'albedo_values' in model_outputs:	
+        albedo = model_outputs['albedo_values']	
+        spec = model_outputs['spec_values'].repeat(1,3)	
+        specmap = model_outputs['specmap_values'].repeat(1,3)	
+        rough_rgb = model_outputs['rough_rgb_values']	
+    else:	
+        albedo = None	
+        spec = None	
+        specmap = None	
+        rough_rgb = None
+
     rgb_points = model_outputs['rgb_values']
     rgb_points = rgb_points.reshape(batch_size, num_samples, 3)
 
@@ -99,6 +111,15 @@ def plot_images(model_outputs, depth_image, ground_truth, path, epoch, img_index
         output_vs_gt = torch.cat((output_vs_gt, rgb_gt, depth_image.repeat(1, 1, 3), normal_points), dim=0)
     else:
         output_vs_gt = torch.cat((output_vs_gt, depth_image.repeat(1, 1, 3), normal_points), dim=0)
+
+    if 'albedo_values' in model_outputs:	
+        rough_rgb_points = rough_rgb.reshape(batch_size, num_samples, 3)	
+        rough_rgb_points = (rough_rgb_points + 1.) / 2.	
+        albedo_points = albedo.reshape(batch_size, num_samples, 3)	
+        spec_points = spec.reshape(batch_size, num_samples, 3)	
+        specmap_points = specmap.reshape(batch_size, num_samples, 3)	
+        output_vs_gt = torch.cat((output_vs_gt, rough_rgb_points, albedo_points, spec_points, specmap_points), dim=0)	
+
     if 'lbs_weight' in model_outputs:
         import matplotlib.pyplot as plt
 
@@ -134,7 +155,7 @@ def plot_images(model_outputs, depth_image, ground_truth, path, epoch, img_index
 
     tensor = torchvision.utils.make_grid(output_vs_gt_plot,
                                          scale_each=False,
-                                         normalize=False,
+                                         normalize=True,
                                          nrow=output_vs_gt.shape[0]).cpu().detach().numpy()
 
     tensor = tensor.transpose(1, 2, 0)
@@ -154,3 +175,105 @@ def plot_images(model_outputs, depth_image, ground_truth, path, epoch, img_index
 def lin2img(tensor, img_res):
     batch_size, num_samples, channels = tensor.shape
     return tensor.permute(0, 2, 1).view(batch_size, channels, img_res[0], img_res[1])
+
+def light_plot(img_index, model_outputs, pose, ground_truth, path, epoch, img_res, plot_nimgs, min_depth, max_depth, res_init, res_up, is_eval=False):
+    # arrange data to plot
+    batch_size = pose.shape[0]
+    num_samples = int(model_outputs['rgb_values'].shape[0] / batch_size)
+    # plot rendered images
+
+    if 'rgb' in ground_truth:
+        rgb_gt = ground_truth['rgb']
+        rgb_gt = (rgb_gt.cuda() + 1.) / 2.
+    else:
+        rgb_gt = None
+
+
+    if 'bg_img' in model_outputs:
+        rgb_points = model_outputs['rgb_values'] * (model_outputs['object_mask'] * model_outputs['foreground_mask']) + model_outputs['bg_img'] * (1 - model_outputs['object_mask'] * model_outputs['foreground_mask'])
+    else:
+        rgb_points = model_outputs['rgb_values'] * (model_outputs['object_mask'] * model_outputs['foreground_mask']) + (1 - model_outputs['object_mask'] * model_outputs['foreground_mask'])
+    rgb_points = rgb_points.reshape(batch_size, num_samples, 3)
+
+    normal_points = model_outputs['normal_values'] * model_outputs['face_mask'] + (1 - model_outputs['face_mask'])
+    normal_points = normal_points.reshape(batch_size, num_samples, 3)
+
+    fine_normal_points = model_outputs['fine_normal_values'] * model_outputs['face_mask'] + (1 - model_outputs['face_mask'])
+    fine_normal_points = fine_normal_points.reshape(batch_size, num_samples, 3)
+
+    # pre_spec_points = model_outputs['pre_spec_values']
+    # pre_spec_points = pre_spec_points.reshape(batch_size, num_samples, 3)
+
+    albedo_points = model_outputs['albedo_values'] * model_outputs['face_mask'] + (1 - model_outputs['face_mask'])
+    albedo_points = albedo_points.reshape(batch_size, num_samples, 3)
+
+    specmap_points = model_outputs['specmap_values'] * model_outputs['face_mask'] + (1 - model_outputs['face_mask'])
+    specmap_points = specmap_points.reshape(batch_size, num_samples, 3) 
+
+    shading_points = model_outputs['shading_values'] * model_outputs['face_mask']
+    shading_points = shading_points.reshape(batch_size, num_samples, 3)
+
+    spec_points = model_outputs['spec_values'] * model_outputs['face_mask'] 
+    spec_points = spec_points.reshape(batch_size, num_samples, 3)
+
+    light_points = model_outputs['light_values']
+    light_points = light_points.reshape(batch_size, num_samples, 3)
+
+    rgb_points = (torch.clamp(rgb_points, -1.0, 1.0) + 1.) / 2.
+    specmap_points = (torch.clamp(specmap_points, -1.0, 1.0) + 1.) / 2.
+    normal_points = (torch.clamp(normal_points, -1.0, 1.0) + 1.) / 2.
+    fine_normal_points = (torch.clamp(fine_normal_points, -1.0, 1.0) + 1.) / 2.
+    # albedo_points = (torch.clamp(albedo_points, -1.0, 1.0) + 1.) / 2.
+    # shading_points = (torch.clamp(shading_points, -1.0, 1.0) + 1.) / 2.
+
+    output_vs_gt = rgb_points
+    if rgb_gt is not None:
+        output_vs_gt = torch.cat((rgb_gt, output_vs_gt, albedo_points, normal_points, fine_normal_points, specmap_points, spec_points, shading_points, light_points), dim=0)
+    else:
+        output_vs_gt = torch.cat((output_vs_gt, albedo_points,normal_points, fine_normal_points, specmap_points, spec_points, shading_points, light_points), dim=0)
+   
+    if 'sample_light_values' in model_outputs:
+
+        sample_rgb_points = model_outputs['sample_rgb_values'] * model_outputs['object_mask'] + (1 - model_outputs['object_mask'])
+        sample_rgb_points = sample_rgb_points.reshape(batch_size, num_samples, 3)
+
+        sample_light_points = model_outputs['sample_light_values']
+        sample_light_points = sample_light_points.reshape(batch_size, num_samples, 3)
+
+        sample_rgb_points = (torch.clamp(sample_rgb_points, -1.0, 1.0) + 1.) / 2.
+        output_vs_gt = torch.cat((output_vs_gt, sample_rgb_points, sample_light_points), dim = 0)
+
+    output_vs_gt_plot = lin2img(output_vs_gt, img_res)
+
+    tensor = torchvision.utils.make_grid(output_vs_gt_plot,
+                                         scale_each=False,
+                                         normalize=False,
+                                         nrow=output_vs_gt.shape[0]).cpu().detach().numpy()
+
+    tensor = tensor.transpose(1, 2, 0)
+    scale_factor = 255
+    tensor = (tensor * scale_factor).astype(np.uint8)
+
+    img = Image.fromarray(tensor)
+    if is_eval:
+        wo_epoch_path = path.replace('/epoch_{}'.format(epoch), '')
+        if not os.path.exists('{0}/rendering_test'.format(wo_epoch_path)):
+            os.mkdir('{0}/rendering_test'.format(wo_epoch_path))
+        img.save('{0}/rendering_test/epoch_{1}_{2}.png'.format(wo_epoch_path, epoch, img_index))
+
+        plot_image(rgb_gt, path, epoch, img_index, 1, img_res, 'gt')
+        plot_image(rgb_points, path, epoch, img_index, 1, img_res, 'rgb')
+        plot_image(albedo_points, path, epoch, img_index, 1, img_res, 'albedo')
+        plot_image(normal_points, path, epoch, img_index, 1, img_res, 'normal')
+        plot_image(fine_normal_points, path, epoch, img_index, 1, img_res, 'fine_normal')
+        plot_image(specmap_points, path, epoch, img_index, 1, img_res, 'specmap')
+        plot_image(spec_points, path, epoch, img_index, 1, img_res, 'spec')
+        plot_image(shading_points, path, epoch, img_index, 1, img_res, 'shading')
+        plot_image(light_points, path, epoch, img_index, 1, img_res, 'light')
+    else:
+        wo_epoch_path = path.replace('/epoch_{}'.format(epoch), '')
+        if not os.path.exists('{0}/rendering'.format(wo_epoch_path)):
+            os.mkdir('{0}/rendering'.format(wo_epoch_path))
+        img.save('{0}/rendering/epoch_{1}_{2}.png'.format(wo_epoch_path, epoch, img_index))
+
+    del output_vs_gt

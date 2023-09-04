@@ -60,67 +60,6 @@ def add_sample_SHlight(constant_factor, normal_images, sh_coeff):
     shading = torch.sum(sh_coeff[None,:,None]*sh[:,:,None], 1) # [bz, 9, 1]  
     return shading # [bz, 1]  
 
-def add_SHlight_infer(normal_images, given_sh):
-    '''
-        sh_coeff: [bz, 9, 1]
-        1, Y, Z, X, YX, YZ, 3Z^2-1, XZ, X^2-y^2
-    '''
-    N = normal_images
-    # sh = torch.stack([
-    #         N[:,0]*0.+1., N[:,0], N[:,1], \
-    #         N[:,2], N[:,0]*N[:,1], N[:,0]*N[:,2], 
-    #         N[:,1]*N[:,2], N[:,0]**2 - N[:,1]**2, 3*(N[:,2]**2) - 1
-    #         ], 
-    #         1) # [bz, 9, h, w]
-    sh = torch.stack([
-        N[:,0]*0.+1., N[:,1], N[:,2], \
-        N[:,0], N[:,0]*N[:,1], N[:,1]*N[:,2], 
-        3*(N[:,2]**2) - 1, N[:,0]*N[:,2], N[:,0]**2 - N[:,1]**2
-        ], 
-        1) # [bz, 9, h, w] 
-    sh = sh*given_sh[:, :, :, None]
-    shading = torch.sum(sh[:,:,None,:,:], 1) # [bz, 9, 1, h, w]  
-    # sh = sh*constant_factor[None,:,None,None]
-    # shading = torch.sum(sh_coeff[:,:,:,None,None]*sh[:,:,None,:,:], 1) # [bz, 9, 1, h, w]  
-    return shading
-
-def add_SHlight_infer_env(normal_images, given_sh):
-    '''
-        sh_coeff: [bz, 9, 1]
-        1, Y, Z, X, YX, YZ, 3Z^2-1, XZ, X^2-y^2
-    '''
-    N = normal_images
-
-    constant_factor = torch.tensor([0.5/np.sqrt(np.pi),
-                            np.sqrt(3)/2/np.sqrt(np.pi), 
-                            np.sqrt(3)/2/np.sqrt(np.pi),
-                            np.sqrt(3)/2/np.sqrt(np.pi),
-                            np.sqrt(15)/2/np.sqrt(np.pi),
-                            np.sqrt(15)/2/np.sqrt(np.pi),
-                            np.sqrt(5)/4/np.sqrt(np.pi),
-                            np.sqrt(15)/2/np.sqrt(np.pi),
-                            np.sqrt(15)/4/np.sqrt(np.pi)]).float().view(1, 9, 1, 1)
-
-    # sh = torch.stack([
-    #         N[:,0]*0.+1., N[:,0], N[:,1], \
-    #         N[:,2], N[:,0]*N[:,1], N[:,0]*N[:,2], 
-    #         N[:,1]*N[:,2], N[:,0]**2 - N[:,1]**2, 3*(N[:,2]**2) - 1
-    #         ], 
-    #         1) # [bz, 9, h, w]
-    sh = torch.stack([
-        N[:,0]*0.+1., N[:,1], N[:,2], \
-        N[:,0], N[:,0]*N[:,1], N[:,1]*N[:,2], 
-        3*(N[:,2]**2) - 1, N[:,0]*N[:,2], N[:,0]**2 - N[:,1]**2
-        ], 
-        1) # [bz, 9, h, w] 
-
-    sh = sh[:,:,None,:,:] * given_sh[None,:,:,:,:]
-    shading = torch.sum(sh[:,:,:,:,:], 1) # [bz, 9, 1, h, w]  
-    # sh = sh*constant_factor[None,:,None,None]
-    # shading = torch.sum(sh_coeff[:,:,:,None,None]*sh[:,:,None,:,:], 1) # [bz, 9, 1, h, w]  
-    return shading
-
-
 def SH_basis(normal):
     '''
         get SH basis based on normal
@@ -193,16 +132,7 @@ def get_shading(normal, SH):
 def draw_shading(sh):
     # ---------------- create normal for rendering half sphere ------
     img_size = 256
-    # x = np.linspace(-1, 1, img_size)
-    # z = np.linspace(1, -1, img_size)
-    # x, z = np.meshgrid(x, z)
 
-    # mag = np.sqrt(x**2 + z**2)
-    # valid = mag <=1
-    # y = -np.sqrt(1 - (x*valid)**2 - (z*valid)**2)
-    # x = x * valid
-    # y = y * valid
-    # z = z * valid
     x = np.linspace(-1, 1, img_size)
     y = np.linspace(1, -1, img_size)
     x, y = np.meshgrid(x, y)
