@@ -1,6 +1,6 @@
 # ReliTalk - Drive any portrait with only a single training video required
 
-## [**[Project Page]**](https://github.com/arthur-qiu/ReliTalk) | [**[Paper]**](https://github.com/arthur-qiu/ReliTalk) | [**[Demo Video]**](https://github.com/arthur-qiu/ReliTalk)
+## [**[Project Page]**](http://haonanqiu.com/projects/ReliTalk.html) | [**[Paper]**](https://github.com/arthur-qiu/ReliTalk) | [**[Demo Video]**](https://www.youtube.com/watch?v=tS2Tek_72J0)
 
 This repository provides the official PyTorch implementation for the following paper:
 
@@ -66,7 +66,7 @@ python scripts/exp_runner_relight.py --conf ./confs/IMavatar_supervised_Obama_li
 python scripts/exp_runner_relight.py --conf ./confs/IMavatar_supervised_Obama_test_light.conf --is_eval --checkpoint [epoch2]
 ```
 
-# We are still working on organizing the code. 
+# We are still working on organizing the code of the remaining functions. 
 
 ## Acknowledgments
 This code borrows heavily from [IMavatar](https://github.com/zhengyuf/IMavatar).
