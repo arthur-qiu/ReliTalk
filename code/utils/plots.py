@@ -67,7 +67,7 @@ def plot_image(rgb, path, epoch, img_index, plot_nrow, img_res, type):
 
     tensor = torchvision.utils.make_grid(rgb_plot,
                                          scale_each=True,
-                                         normalize=True,
+                                         normalize=False,
                                          nrow=plot_nrow).cpu().detach().numpy()
     tensor = tensor.transpose(1, 2, 0)
     scale_factor = 255
@@ -155,7 +155,7 @@ def plot_images(model_outputs, depth_image, ground_truth, path, epoch, img_index
 
     tensor = torchvision.utils.make_grid(output_vs_gt_plot,
                                          scale_each=False,
-                                         normalize=True,
+                                         normalize=False,
                                          nrow=output_vs_gt.shape[0]).cpu().detach().numpy()
 
     tensor = tensor.transpose(1, 2, 0)
