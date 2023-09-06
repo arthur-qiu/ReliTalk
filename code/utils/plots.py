@@ -201,9 +201,6 @@ def light_plot(img_index, model_outputs, pose, ground_truth, path, epoch, img_re
     fine_normal_points = model_outputs['fine_normal_values'] * model_outputs['face_mask'] + (1 - model_outputs['face_mask'])
     fine_normal_points = fine_normal_points.reshape(batch_size, num_samples, 3)
 
-    # pre_spec_points = model_outputs['pre_spec_values']
-    # pre_spec_points = pre_spec_points.reshape(batch_size, num_samples, 3)
-
     albedo_points = model_outputs['albedo_values'] * model_outputs['face_mask'] + (1 - model_outputs['face_mask'])
     albedo_points = albedo_points.reshape(batch_size, num_samples, 3)
 
@@ -223,8 +220,6 @@ def light_plot(img_index, model_outputs, pose, ground_truth, path, epoch, img_re
     specmap_points = (torch.clamp(specmap_points, -1.0, 1.0) + 1.) / 2.
     normal_points = (torch.clamp(normal_points, -1.0, 1.0) + 1.) / 2.
     fine_normal_points = (torch.clamp(fine_normal_points, -1.0, 1.0) + 1.) / 2.
-    # albedo_points = (torch.clamp(albedo_points, -1.0, 1.0) + 1.) / 2.
-    # shading_points = (torch.clamp(shading_points, -1.0, 1.0) + 1.) / 2.
 
     output_vs_gt = rgb_points
     if rgb_gt is not None:

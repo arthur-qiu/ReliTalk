@@ -1,6 +1,6 @@
 # ReliTalk - Drive any portrait with only a single training video required
 
-## [**[Project Page]**](http://haonanqiu.com/projects/ReliTalk.html) | [**[Paper]**](https://github.com/arthur-qiu/ReliTalk) | [**[Demo Video]**](https://www.youtube.com/watch?v=tS2Tek_72J0)
+## [**[Project Page]**](http://haonanqiu.com/projects/ReliTalk.html) | [**[Paper]**](https://arxiv.org/abs/2309.02434) | [**[Demo Video]**](https://www.youtube.com/watch?v=tS2Tek_72J0)
 
 This repository provides the official PyTorch implementation for the following paper:
 
@@ -66,7 +66,22 @@ python scripts/exp_runner_relight.py --conf ./confs/IMavatar_supervised_Obama_li
 python scripts/exp_runner_relight.py --conf ./confs/IMavatar_supervised_Obama_test_light.conf --is_eval --checkpoint [epoch2]
 ```
 
-# We are still working on organizing the code of the remaining functions. 
+## We are still working on organizing the code of the remaining functions. 
+
+## Citation
+
+If you find this work useful for your research, please consider citing our paper:
+
+```bibtex
+@misc{qiu2023relitalk,
+      title={ReliTalk: Relightable Talking Portrait Generation from a Single Video}, 
+      author={Haonan Qiu and Zhaoxi Chen and Yuming Jiang and Hang Zhou and Xiangyu Fan and Lei Yang and Wayne Wu and Ziwei Liu},
+      year={2023},
+      eprint={2309.02434},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
+}
+```
 
 ## Acknowledgments
 This code borrows heavily from [IMavatar](https://github.com/zhengyuf/IMavatar).
