@@ -25,7 +25,7 @@ Video Data: [HDTF](https://github.com/MRzzm/HDTF)
 
 ## Getting Started
 * Clone this repo: `git clone --recursive git@github.com:arthur-qiu/ReliTalk.git`
-* Create a conda environment `conda env create -f environment.yml` and activate `conda activate IMavatar` 
+* Create a conda environment `conda env create -f environment.yml` and activate `conda activate ReliTalk` 
 * We use `libmise` to extract 3D meshes, build `libmise` by running `cd code; python setup.py install`
 * Download [FLAME model](https://flame.is.tue.mpg.de/download.php), choose **FLAME 2020** and unzip it, copy 'generic_model.pkl' into `./code/flame/FLAME2020`
 
