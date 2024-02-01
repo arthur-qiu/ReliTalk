@@ -7,7 +7,7 @@ video_names='Obama_train.mp4 Obama_eval.mp4'
 shape_video='Obama_train.mp4'
 fps=25
 # Center crop
-crop="256:256:0:0"
+crop="450:450:0:0"
 resize=256
 # fx, fy, cx, cy in pixels, need to adjust with resizing and cropping
 fx=1200.0
